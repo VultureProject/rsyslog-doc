@@ -33,9 +33,11 @@ tenant_id
    :widths: auto
    :class: parameter-table
 
-   "word", "none", "no", "none"
+   "word", "none", "yes", "none"
 
-tenant_id for authentication purpose.
+This parameter is required for authentication and resource management in Azure.
+
+See `Azure portal documentation <https://learn.microsoft.com/en-us/azure/azure-portal/get-subscription-tenant-id>`_ for details on how to locate your subscription and tenant IDs.
 
 
 client_secret
@@ -46,9 +48,11 @@ client_secret
    :widths: auto
    :class: parameter-table
 
-   "word", "none", "no", "none"
+   "word", "none", "yes", "none"
 
-client_secret for authentication purpose.
+The parameter is required to authenticate your application when requesting tokens from Azure AD.
+
+Refer to the `Microsoft identity platform <https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#get-application-id-and-authentication-key>`_ to create and retrieve the client secret.
 
 client_id
 ^^^^^^^^^
@@ -58,9 +62,11 @@ client_id
    :widths: auto
    :class: parameter-table
 
-   "word", "none", "no", "none"
+   "word", "none", "yes", "none"
 
-client_id for authentication purpose.
+This parameter uniquely identifies your application when authenticating with Azure AD.
+
+Check the `client_id documentation <https://learn.microsoft.com/en-us/entra/identity-platform/howto-create-service-principal-portal#get-application-id-and-authentication-key>`_ to find out on how to create client_id.
 
 scope
 ^^^^^
@@ -72,7 +78,9 @@ scope
 
    "word", "https://monitor.azure.com/.default", "no", "none"
 
-resource scope.
+This parameter specifies the permissions your application requests when acquiring an access token.
+
+See the `scope documentation <https://learn.microsoft.com/en-us/entra/identity-platform/permissions-consent-overview>`_ for details on scopes and permissions.
 
 
 grant_type
@@ -85,7 +93,10 @@ grant_type
 
    "word", "client_credentials", "no", "none"
 
-authentication method.
+This parameter specifies the OAuth 2.0 flow used to obtain an access token.
+
+Refer to the `grant_type documentation <https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-client-creds-grant-flow>`_ for details on supported grant types.
+
 
 
 dcr
@@ -96,9 +107,11 @@ dcr
    :widths: auto
    :class: parameter-table
 
-   "word", "none", "no", "none"
+   "word", "none", "yes", "none"
 
-Data Collection Rule to ingest data.
+The ``dcr`` (Data Collection Rule) defines how data is collected, transformed, and sent to Azure Monitor.
+
+See the `Azure Monitor DCR documentation <https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-rule-overview>`_ for details on configuring and managing DCRs.
 
 
 dce
@@ -109,9 +122,11 @@ dce
    :widths: auto
    :class: parameter-table
 
-   "word", "none", "no", "none"
+   "word", "none", "yes", "none"
 
-Data Collection Endpoint.
+The **dce** (Data Collection Endpoint) specifies the regional ingestion endpoint used by Data Collection Rules to send data to Azure Monitor.
+
+Refer to the `Azure Monitor DCE documentation <https://learn.microsoft.com/en-us/azure/azure-monitor/data-collection/data-collection-endpoint-overview?tabs=portal>`_ for details on configuring and using DCEs.
 
 
 
@@ -123,9 +138,9 @@ stream_name
    :widths: auto
    :class: parameter-table
 
-   "word", "none", "no", "none"
+   "word", "none", "yes", "none"
 
-Name of the stream where to ingest data.
+This parameter identifies the specific data stream within a Data Collection Rule where collected data is routed.
 
 healthchecktimeout
 ^^^^^^^^^^^^^^^^^^
@@ -139,46 +154,6 @@ healthchecktimeout
 
 The time after which the health check will time out in milliseconds.
 
-
-
-batch
-^^^^^
-
-.. csv-table::
-   :header: "type", "default", "mandatory", "|FmtObsoleteName| directive"
-   :widths: auto
-   :class: parameter-table
-
-   "binary", "off", "no", "none"
-
-
-This parameter activates batching mode, which queues messages and sends them as a single request. There are several related parameters that specify the format and size of the batch: they are batch.format_, batch.maxbytes_, and batch.maxsize_.
-
-Note that rsyslog core is the ultimate authority on when a batch must be submitted, due to the way that batching is implemented. This plugin implements the `output plugin transaction interface <https://www.rsyslog.com/doc/v8-stable/development/dev_oplugins.html#output-plugin-transaction-interface>`_. There may be multiple batches in a single transaction, but a batch will never span multiple transactions. This means that if batch.maxsize_ or batch.maxbytes_ is set very large, you may never actually see batches hit this size. Additionally, the number of messages per transaction is determined by the size of the main, action, and ruleset queues as well.
-
-Additionally, due to some open issues with rsyslog and the transaction interface, batching requires some nuanced retry_ configuration.
-
-
-batch.format
-^^^^^^^^^^^^
-
-.. csv-table::
-   :header: "type", "default", "mandatory", "|FmtObsoleteName| directive"
-   :widths: auto
-   :class: parameter-table
-
-   "word", "newline", "no", "none"
-
-This parameter specifies how to combine multiple messages into a single batch. Valid options are *newline* (default), *jsonarray*, *kafkarest*, and *lokirest*.
-
-Each message on the "Inputs" line is the templated log line that is fed into the omsentinel action, and the "Output" line describes the resulting payload sent to the configured HTTP server.
-
-1. *jsonarray* - Builds a JSON array containing all messages in the batch. This mode requires that each message is parseable JSON, since the plugin parses each message as JSON while building the array.
-
-.. code-block:: text
-
-    Inputs: {"msg": "message 1"} {"msg"": "message 2"} {"msg": "message 3"}
-    Output: [{"msg": "message 1"}, {"msg"": "message 2"}, {"msg": "message 3"}]
 
 
 batch.maxsize
@@ -379,31 +354,6 @@ tls.myprivkey
 The parameters sets the path to the SSL private key. Expects .pem format.
 
 
-Statistic Counter
-=================
-
-This plugin maintains global :doc:`statistics <../rsyslog_statistic_counter>` for omsentinel that
-accumulates all action instances. The statistic origin is named "omsentinel" with following counters:
-
-- **messages.submitted** - Number of messages submitted to omsentinel. Messages resubmitted via a retry ruleset will be counted twice.
-
-- **messages.success** - Number of messages successfully sent.
-
-- **messages.fail** - Number of messages that omsentinel failed to deliver for any reason.
-
-- **messages.retry** - Number of messages that omsentinel resubmitted for retry via the retry ruleset.
-
-- **request.count** - Number of attempted HTTP requests.
-
-- **request.success** - Number of successful HTTP requests. A successful request can return *any* HTTP status code.
-
-- **request.fail** - Number of failed HTTP requests. A failed request is something like an invalid SSL handshake, or the server is not reachable. Requests returning 4XX or 5XX HTTP status codes are *not* failures.
-
-- **request.status.success** - Number of requests returning 1XX or 2XX HTTP status codes.
-
-- **request.status.fail** - Number of requests returning 3XX, 4XX, or 5XX HTTP status codes. If a requests fails (i.e. server not reachable) this counter will *not* be incremented.
-
-
 Examples
 ========
 
@@ -416,7 +366,15 @@ The following example is a basic usage, first the module is loaded and authentic
 .. code-block:: text
 
     module(load="omsentinel")
-    template(name="tpl1" type="string" string="{\"type\":\"syslog\", \"host\":\"%HOSTNAME%\"}")
+    template(name="tpl1" type="list") {
+      constant(value="{")
+      constant(value="\"timereported\":\"") property(name="timereported" dateFormat="rfc3339")
+      constant(value="\",\"fromhost\":\"") property(name="hostname")
+      constant(value="\",\"priority\":\"") property(name="syslogseverity-text")
+      constant(value="\",\"facility\":\"") property(name="syslogfacility-text")
+      constant(value="\",\"message\":\"") property(name="msg")
+      constant(value="\"}")
+   }
     action(
         type="omsentinel"
         tenant_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
